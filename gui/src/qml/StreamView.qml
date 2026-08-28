@@ -7,9 +7,14 @@ import QtQuick.Window
 import org.streetpea.chiaking
 
 import "controls" as C
+import QtMultimedia
 
 Item {
     id: view
+
+    MediaDevices {
+        id: mediaDevices
+    }
 
     readonly property var hostWindow: view.Window.window
     property bool sessionError: false
@@ -139,6 +144,23 @@ Item {
             view.releaseInput();
             view.updateOverlayInteractionActive();
         }
+    }
+
+    CaptureSession {
+        id: usbCaptureSession
+        camera: Camera {
+            id: usbCamera
+            active: false // Desligado por padrão, você liga no menu
+        }
+        videoOutput: usbVideoOutput
+    }
+
+    VideoOutput {
+        id: usbVideoOutput
+        anchors.fill: parent
+        fillMode: VideoOutput.PreserveAspectFit
+        // Para que o Chiaki não desenhe nada por cima do nosso vídeo (exceto o menu)
+        z: -1 
     }
 
     Rectangle {
@@ -544,8 +566,52 @@ Item {
                 checked: Chiaki.session && !Chiaki.session.muted
                 onToggled: Chiaki.session.muted = !Chiaki.session.muted
                 KeyNavigation.left: volumeSlider
-                KeyNavigation.right: zoomButton
+                KeyNavigation.right: usbCaptureButton
                 Keys.onReturnPressed: toggled()
+                Keys.onEscapePressed: menuController.close()
+            }
+
+            ToolSeparator {
+                Layout.leftMargin: -10
+                Layout.rightMargin: -10
+            }
+
+            ToolButton {
+                id: usbCaptureButton
+                Layout.rightMargin: 10
+                text: qsTr("Placa USB")
+                padding: 10
+                checkable: true
+                checked: usbCamera.active
+                onToggled: {
+                    usbCamera.active = !usbCamera.active;
+                    if (usbCamera.active) {
+                        if (Chiaki.session && !Chiaki.session.muted) {
+                            Chiaki.session.muted = true;
+                        }
+                        Chiaki.window.keepVideo = false; // Desativa o desenho do vídeo da rede
+                    } else {
+                        Chiaki.window.keepVideo = true; // Volta a desenhar se desligar
+                    }
+                }
+                KeyNavigation.left: muteButton
+                KeyNavigation.right: cameraSelector
+                Keys.onReturnPressed: toggled()
+                Keys.onEscapePressed: menuController.close()
+            }
+
+            ComboBox {
+                id: cameraSelector
+                Layout.rightMargin: 20
+                Layout.preferredWidth: 200
+                model: mediaDevices.videoInputs
+                textRole: "description"
+                visible: usbCaptureButton.checked
+                onActivated: {
+                    usbCamera.cameraDevice = mediaDevices.videoInputs[index];
+                }
+                KeyNavigation.left: usbCaptureButton
+                KeyNavigation.right: zoomButton
                 Keys.onEscapePressed: menuController.close()
             }
 
