@@ -12,6 +12,7 @@
     "opus",
     "lcms",
     "speexdsp",
-    "vulkan"
+    "vulkan",
+    "shaderc"
   ]
 }
