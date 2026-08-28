@@ -120,10 +120,10 @@ jobs:
           --native-file ../meson.ini `
           "--pkg-config-path=['${env:VCPKG_INSTALLED_DIR}\${{ env.triplet }}\lib\pkgconfig','${env:VCPKG_INSTALLED_DIR}\${{ env.triplet }}\share\pkgconfig','${{ github.workspace }}\${{ env.dep_folder }}\lib\pkgconfig']" `
           "--cmake-prefix-path=['${env:VCPKG_INSTALLED_DIR}\${{ env.triplet }}', '${{ env.VULKAN_SDK }}', '${{ github.workspace }}\${{ env.dep_folder }}']" `
-          -Dc_args="/I ${{ env.VULKAN_SDK }}Include" `
-          -Dcpp_args="/I ${{ env.VULKAN_SDK }}Include" `
-          -Dc_link_args="/LIBPATH:${{ env.VULKAN_SDK }}Lib" `
-          -Dcpp_link_args="/LIBPATH:${{ env.VULKAN_SDK }}Lib" `
+          -Dc_args="-I${{ env.VULKAN_SDK }}Include" `
+          -Dcpp_args="-I${{ env.VULKAN_SDK }}Include" `
+          -Dc_link_args="-L${{ env.VULKAN_SDK }}Lib" `
+          -Dcpp_link_args="-L${{ env.VULKAN_SDK }}Lib" `
           -Ddemos=false `
           ./build
           ninja -C./build
