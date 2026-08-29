@@ -607,8 +607,23 @@ Item {
                 model: mediaDevices.videoInputs
                 textRole: "description"
                 visible: usbCaptureButton.checked
-                onActivated: {
-                    usbCamera.cameraDevice = mediaDevices.videoInputs[index];
+                                onActivated: {
+                    var dev = mediaDevices.videoInputs[index];
+                    usbCamera.cameraDevice = dev;
+                    if (dev.videoFormats && dev.videoFormats.length > 0) {
+                        var best = dev.videoFormats[0];
+                        for (var i = 1; i < dev.videoFormats.length; i++) {
+                            var f = dev.videoFormats[i];
+                            var isBetterFps = f.maxFrameRate > best.maxFrameRate + 1;
+                            var isSameFps = Math.abs(f.maxFrameRate - best.maxFrameRate) <= 1;
+                            var isBetterRes = (f.resolution.width * f.resolution.height) > (best.resolution.width * best.resolution.height);
+                            if (isBetterFps || (isSameFps && isBetterRes)) {
+                                best = f;
+                            }
+                        }
+                        usbCamera.cameraFormat = best;
+                        console.log("Forced camera format to: " + best.resolution.width + "x" + best.resolution.height + " @ " + best.maxFrameRate + "fps");
+                    }
                 }
                 KeyNavigation.left: usbCaptureButton
                 KeyNavigation.right: zoomButton
